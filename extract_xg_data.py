@@ -16,8 +16,8 @@ Y_YARD = (Y_TOP_18 - Y_GOAL_LINE) / 18.0
 def shots(event: dict):
     attr: list = event['tagAttributes']
     result = ""
-    x = 0.0
-    y = 0.0
+    x = -1
+    y = -1
     for item in attr:
         match item['name']:
             case 'Result':
@@ -25,6 +25,8 @@ def shots(event: dict):
             case 'Field Location':
                 x = (item['value']['x'] - X_CENTER) / X_YARD
                 y = (item['value']['y'] - Y_GOAL_LINE) / Y_YARD
+    if not result or x == -1 or y == -1 :
+        return []
     return ["shot", result, x, y]
 
 
@@ -48,6 +50,8 @@ with open('xgdata.csv', 'w', encoding='UTF8', newline='') as xg_data_file:
         for event in game['tagEvents']:
             event_name = event['tagResource']['name']
             if (event_name in extract_dict.keys()):
-                event_data = [game_id]
-                event_data.extend(extract_dict[event_name](event))
-                xg_data_writer.writerow(event_data)
+                extract_data = extract_dict[event_name](event)
+                if (extract_data) :
+                    event_data = [game_id]
+                    event_data.extend(extract_dict[event_name](event))
+                    xg_data_writer.writerow(event_data)                
