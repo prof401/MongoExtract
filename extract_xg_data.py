@@ -14,8 +14,8 @@ Y_TOP_18 = 642.842879
 Y_YARD = (Y_TOP_18 - Y_GOAL_LINE) / 18.0
 
 
-def shots(event: dict):
-    attr: list = event['tagAttributes']
+def shot(shot_event: dict):
+    attr: list = shot_event['tagAttributes']
     result = ""
     x = -1
     y = -1
@@ -31,13 +31,24 @@ def shots(event: dict):
     return ["shot", result, x, y]
 
 
+def set_piece(set_piece_event: dict):
+    type_set = {'free kick', 'penalty kick', 'corner kick'}
+    set_piece_type = ""
+    for attribute in set_piece_event['tagAttributes']:
+        if attribute["name"] == "Type":
+            if attribute["value"] in type_set:
+                set_piece_type = attribute["value"]
+            else:
+                return []
+
+    return ["set_piece", set_piece_type]
+
+
+extract_dict = {'Shot': shot,
+                'Set Piece': set_piece}
+
 dbname = get_database()
-
-# Retrieve a collection named "user_1_items" from database
 collection_name = dbname["vidswap"]
-
-extract_dict = {'Shot': shots}
-
 games = collection_name.find()
 
 with open('xgdata.csv', 'w', encoding='UTF8', newline='') as xg_data_file:
@@ -57,6 +68,11 @@ with open('xgdata.csv', 'w', encoding='UTF8', newline='') as xg_data_file:
                 if extract_data:
                     startEvent = int(time.mktime(time.strptime(event['startOffset'], "%H:%M:%S.%f")))
                     offset = startEvent - periodStart
+                    match event_name:
+                        case "Shot":
+                            offset += 3
+                        case "Set Piece":
+                            offset += 2
                     event_data = [game_id, period, offset]
                     event_data.extend(extract_dict[event_name](event))
                     xg_data_writer.writerow(event_data)
