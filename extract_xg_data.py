@@ -1,5 +1,6 @@
 # Get the database using the method we defined in pymongo_test_insert file
 import csv
+import time
 
 from pymongo_get_database import get_database
 
@@ -25,7 +26,7 @@ def shots(event: dict):
             case 'Field Location':
                 x = (item['value']['x'] - X_CENTER) / X_YARD
                 y = (item['value']['y'] - Y_GOAL_LINE) / Y_YARD
-    if not result or x == -1 or y == -1 :
+    if not result or x == -1 or y == -1:
         return []
     return ["shot", result, x, y]
 
@@ -41,17 +42,28 @@ games = collection_name.find()
 
 with open('xgdata.csv', 'w', encoding='UTF8', newline='') as xg_data_file:
     xg_data_writer = csv.writer(xg_data_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-
     for game in games:
         playlist = game['playlist']
         game_id = playlist['id']
-        # This does not give a very readable output
+        period = 0
+        periodStart = 0
+        oldPeriodStart = -1
+
         print(playlist['name'] + ' on ' + playlist['date'])
         for event in game['tagEvents']:
             event_name = event['tagResource']['name']
-            if (event_name in extract_dict.keys()):
+            if event_name in extract_dict.keys():
                 extract_data = extract_dict[event_name](event)
-                if (extract_data) :
-                    event_data = [game_id]
+                if extract_data:
+                    startEvent = int(time.mktime(time.strptime(event['startOffset'], "%H:%M:%S.%f")))
+                    offset = startEvent - periodStart
+                    event_data = [game_id, period, offset]
                     event_data.extend(extract_dict[event_name](event))
-                    xg_data_writer.writerow(event_data)                
+                    xg_data_writer.writerow(event_data)
+            else:
+                if event_name == 'Period':
+                    periodStart = int(time.mktime(time.strptime(event['startOffset'], "%H:%M:%S.%f")))
+                    if periodStart != oldPeriodStart:
+                        # only change period if start time changed
+                        period += 1
+                        oldPeriodStart = periodStart
