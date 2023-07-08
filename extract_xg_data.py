@@ -40,16 +40,13 @@ def set_piece(set_piece_event: dict):
                 set_piece_type = attribute["value"]
             else:
                 return []
-
     return ["set_piece", set_piece_type]
 
 
 extract_dict = {'Shot': shot,
                 'Set Piece': set_piece}
 
-dbname = get_database()
-collection_name = dbname["vidswap"]
-games = collection_name.find()
+games = get_database()["vidswap"].find()
 
 with open('xgdata.csv', 'w', encoding='UTF8', newline='') as xg_data_file:
     xg_data_writer = csv.writer(xg_data_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
