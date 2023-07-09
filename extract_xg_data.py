@@ -57,18 +57,31 @@ with open('xgdata.csv', 'w', encoding='UTF8', newline='') as xg_data_file:
         periodStart = 0
         oldPeriodStart = -1
 
-        print(playlist['name'] + ' on ' + playlist['date'])
+        print(playlist['name'] + ' on ' + playlist['date'] + " - " + str(game_id))
+        e_tot = 0;
+        shot_total = 0;
+        shot_rec = 0;
+        set_total = 0;
+        set_rec = 0;
         for event in game['tagEvents']:
+            e_tot += 1
             event_name = event['tagResource']['name']
             if event_name in extract_dict.keys():
+                match event_name:
+                    case "Shot":
+                        shot_total += 1
+                    case "Set Piece":
+                        set_total += 1
                 extract_data = extract_dict[event_name](event)
                 if extract_data:
                     startEvent = int(time.mktime(time.strptime(event['startOffset'], "%H:%M:%S.%f")))
                     offset = startEvent - periodStart
                     match event_name:
                         case "Shot":
+                            shot_rec += 1
                             offset += 3
                         case "Set Piece":
+                            set_rec += 1
                             offset += 2
                     event_data = [game_id, period, offset]
                     event_data.extend(extract_dict[event_name](event))
@@ -80,3 +93,4 @@ with open('xgdata.csv', 'w', encoding='UTF8', newline='') as xg_data_file:
                         # only change period if start time changed
                         period += 1
                         oldPeriodStart = periodStart
+        print(str(period) + " e: " + str(e_tot) + " shot: " + str(shot_rec) + "/" + str(shot_total) + " set: " + str(set_rec) + "/" + str(set_total) )
