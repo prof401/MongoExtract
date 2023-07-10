@@ -17,7 +17,6 @@ blank = 0
 fk = 0
 ck = 0
 pk = 0
-fpk = 0
 
 
 def add_shot(shot_event: list, kick_type: str):
@@ -72,8 +71,6 @@ with open('xgdata.csv', 'r', encoding='UTF8', newline='') as xg_data_file:
     xg_data_reader = csv.reader(xg_data_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
     last_event = list()
     for event in xg_data_reader:
-        if len(event) >= 5 and event[EVENT_NAME] == EVENT_SET_PIECE and event[SET_PIECE_TYPE] == "penalty kick":
-            fpk += 1
         clear_last = False
         if len(event) >= 5:
             if event[EVENT_NAME] == EVENT_SHOT:
@@ -101,5 +98,3 @@ with open('xgdata.csv', 'r', encoding='UTF8', newline='') as xg_data_file:
     print(fk)
     print(ck)
     print(pk)
-    print(fpk)
-    print(final_list)
