@@ -63,7 +63,7 @@ def update_last_event(set_piece_type):
             pk += 1
         case _:
             print(set_piece_type)
-    final_list[len(final_list) - 1][7] = code
+    final_list[len(final_list) - 1][len(final_list[0])-1] = code
 
 
 clear_last = False
